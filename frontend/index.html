@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GATEScan</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+<style>
+
+  /* ════════════════════════════════════════
+     ROOT VARIABLES
+  ════════════════════════════════════════ */
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --card: #1e1e1e;
+    --border: #2a2a2a;
+    --accent: #c8f135;
+    --accent2: #35f1c8;
+    --red: #ff4d4d;
+    --text: #f0f0f0;
+    --muted: #666;
+    --font-head: 'Syne', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+
+  /* ════════════════════════════════════════
+     HEADER
+  ════════════════════════════════════════ */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 48px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .logo {
+    font-family: var(--font-head);
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .logo span { color: var(--accent); }
+
+  .tab-nav {
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    padding: 4px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    padding: 8px 24px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab-btn.active {
+    background: var(--accent);
+    color: #000;
+    font-weight: 700;
+  }
+
+
+  /* ════════════════════════════════════════
+     TAB PANELS
+  ════════════════════════════════════════ */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+
+  /* ════════════════════════════════════════
+     PAGE LAYOUT
+  ════════════════════════════════════════ */
+  .page {
+    padding: 40px 48px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .page-title {
+    font-family: var(--font-head);
+    font-size: 36px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    line-height: 1.1;
+  }
+
+  .page-subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 36px;
+  }
+
+
+  /* ════════════════════════════════════════
+     SECTION HELPERS
+  ════════════════════════════════════════ */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 32px 0;
+  }
+
+  .section-title {
+    font-family: var(--font-head);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* decorative line after title */
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .info-box {
+    background: rgba(200, 241, 53, 0.06);
+    border: 1px solid rgba(200, 241, 53, 0.2);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 12px;
+    color: var(--accent);
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+
+  /* ════════════════════════════════════════
+     UPLOAD ZONE
+  ════════════════════════════════════════ */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 16px;
+    padding: 48px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    background: var(--surface);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .upload-zone:hover,
+  .upload-zone.drag {
+    border-color: var(--accent);
+    background: rgba(200, 241, 53, 0.04);
+  }
+
+  /* invisible file input covers entire zone */
+  .upload-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .upload-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+
+  .upload-zone h3 {
+    font-family: var(--font-head);
+    font-size: 18px;
+    margin-bottom: 6px;
+  }
+
+  .upload-zone p { color: var(--muted); font-size: 12px; }
+
+  .upload-zone img.preview {
+    max-height: 200px;
+    max-width: 100%;
+    border-radius: 8px;
+    margin-top: 16px;
+    border: 1px solid var(--border);
+  }
+
+
+  /* ════════════════════════════════════════
+     THRESHOLD SLIDERS
+  ════════════════════════════════════════ */
+  .controls-row {
+    display: flex;
+    gap: 24px;
+    margin: 28px 0;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+
+  .slider-group { flex: 1; min-width: 200px; }
+
+  .slider-group label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .slider-group .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .slider-val {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent);
+    min-width: 36px;
+    text-align: right;
+  }
+
+
+  /* ════════════════════════════════════════
+     SHEET CONFIGURATION INPUTS
+     (questions count, choices count, tolerance)
+  ════════════════════════════════════════ */
+  .config-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .config-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .config-group label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .config-group input[type="number"] {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  .config-group input[type="number"]:focus { border-color: var(--accent); }
+
+
+  /* ════════════════════════════════════════
+     BUTTONS
+  ════════════════════════════════════════ */
+  .btn {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+  }
+
+  .btn-primary:hover {
+    background: #d8ff40;
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+
+  /* ════════════════════════════════════════
+     PROCESSING STAGE GRID  (4 columns)
+  ════════════════════════════════════════ */
+  .stage-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 32px;
+  }
+
+  @media (max-width: 900px) {
+    .stage-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .stage-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+
+  .stage-card:hover { transform: translateY(-2px); }
+
+  .stage-card .label {
+    padding: 10px 14px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .stage-card img {
+    width: 100%;
+    display: block;
+  }
+
+
+  /* ════════════════════════════════════════
+     STATUS BADGE  (document found / not found)
+  ════════════════════════════════════════ */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-left: 12px;
+  }
+
+  .status-badge.found    { background: rgba(200, 241, 53, 0.12); color: var(--accent); }
+  .status-badge.not-found { background: rgba(255, 77, 77, 0.12);  color: var(--red); }
+
+  /* coloured dot before badge text */
+  .status-badge::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+
+  /* ════════════════════════════════════════
+     MCQ ANSWER INPUT GRID
+     (dynamically populated by JS)
+  ════════════════════════════════════════ */
+  .answer-grid {
+    display: grid;
+    gap: 12px;
+    margin: 24px 0;
+  }
+
+  @media (max-width: 600px) {
+    .answer-grid { grid-template-columns: repeat(3, 1fr) !important; }
+  }
+
+  .answer-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .answer-input-group label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+  }
+
+  /* shared style for both MCQ dropdowns and numerical text inputs */
+  .answer-input-group select,
+  .answer-input-group input[type="text"] {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px;
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .answer-input-group select:focus,
+  .answer-input-group input[type="text"]:focus {
+    border-color: var(--accent);
+  }
+
+
+  /* ════════════════════════════════════════
+     SCORE DISPLAY
+  ════════════════════════════════════════ */
+  .score-display {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+    margin-top: 28px;
+    display: none;
+  }
+
+  .score-display.visible { display: block; }
+
+  .score-big {
+    font-family: var(--font-head);
+    font-size: 80px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .score-label {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+
+  .question-results {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .q-chip {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .q-chip.correct {
+    background: rgba(200, 241, 53, 0.12);
+    color: var(--accent);
+    border: 1px solid rgba(200, 241, 53, 0.3);
+  }
+
+  .q-chip.wrong {
+    background: rgba(255, 77, 77, 0.12);
+    color: var(--red);
+    border: 1px solid rgba(255, 77, 77, 0.3);
+  }
+
+
+  /* ════════════════════════════════════════
+     NUMERICAL — ROW EXTRACTION GRID
+     (shows OCR crop per question)
+  ════════════════════════════════════════ */
+  .row-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin-top: 16px;
+  }
+
+  .row-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+
+  .row-card:hover { transform: translateY(-2px); }
+
+  .row-card .row-label {
+    padding: 10px 14px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .row-card img {
+    width: 100%;
+    display: block;
+  }
+
+
+  /* ════════════════════════════════════════
+     LOADING SPINNER
+  ════════════════════════════════════════ */
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: inline-block;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+
+  /* ════════════════════════════════════════
+     TOAST NOTIFICATION
+  ════════════════════════════════════════ */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 14px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 999;
+  }
+
+  .toast.show   { transform: translateY(0); opacity: 1; }
+  .toast.success { border-color: var(--accent); color: var(--accent); }
+  .toast.error   { border-color: var(--red);    color: var(--red); }
+
+</style>
+</head>
+<body>
+
+
+<!-- ════════════════════════════════════════════
+     HEADER / TAB NAV
+════════════════════════════════════════════ -->
+<header>
+  <div class="logo">GATE<span>S</span>can</div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('scanner', this)">① Document Scanner</button>
+    <button class="tab-btn"        onclick="switchTab('omr', this)">② MCQ Checker</button>
+    <button class="tab-btn"        onclick="switchTab('numerical', this)">③ Numerical Checker</button>
+  </div>
+</header>
+
+
+<!-- ════════════════════════════════════════════
+     TAB 1 — DOCUMENT SCANNER
+════════════════════════════════════════════ -->
+<div id="tab-scanner" class="tab-panel active">
+  <div class="page">
+
+    <div class="page-title">Document Scanner</div>
+    <div class="page-subtitle">Upload a photo of your exam sheet. Adjust thresholds to detect the document edge, then save the warped scan.</div>
+
+    <div class="info-box">
+      💡 <strong>How to use:</strong> Take a clear photo of your exam sheet on a contrasting background.
+      Upload it below, adjust the threshold sliders until the green contour correctly outlines the document,
+      then click <strong>Scan</strong>.
+    </div>
+
+    <!-- Upload zone -->
+    <div class="section-title">Upload Image</div>
+    <div class="upload-zone" id="scanUploadZone">
+      <input type="file" id="scanFileInput" accept="image/*" onchange="handleScanUpload(event)"/>
+      <div id="scanUploadContent">
+        <div class="upload-icon">📄</div>
+        <h3>Drop your exam photo here</h3>
+        <p>or click to browse — JPG, PNG supported</p>
+      </div>
+    </div>
+
+    <!-- Canny threshold sliders -->
+    <div class="controls-row">
+      <div class="slider-group">
+        <label>Threshold 1 (Edge Min)</label>
+        <div class="slider-row">
+          <input type="range" id="thresh1" min="0" max="255" value="200"
+                 oninput="document.getElementById('t1val').textContent = this.value"/>
+          <span class="slider-val" id="t1val">200</span>
+        </div>
+      </div>
+
+      <div class="slider-group">
+        <label>Threshold 2 (Edge Max)</label>
+        <div class="slider-row">
+          <input type="range" id="thresh2" min="0" max="255" value="200"
+                 oninput="document.getElementById('t2val').textContent = this.value"/>
+          <span class="slider-val" id="t2val">200</span>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="runScan()" id="scanBtn" disabled>
+          ⚡ Scan
+        </button>
+        <button class="btn btn-secondary" onclick="clearScanner()">✕ Clear</button>
+      </div>
+    </div>
+
+    <!-- Stage images + actions (hidden until scan runs) -->
+    <div id="scanStatus" style="display: none;">
+      <div class="divider"></div>
+      <div class="section-title">
+        Processing Stages
+        <span id="contourBadge" class="status-badge"></span>
+      </div>
+
+      <div class="stage-grid" id="scanStageGrid"></div>
+
+      <div class="divider"></div>
+      <div class="section-title">Actions</div>
+      <div class="btn-row" id="scanActions"></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     TAB 2 — MCQ / OMR CHECKER
+════════════════════════════════════════════ -->
+<div id="tab-omr" class="tab-panel">
+  <div class="page">
+
+    <div class="page-title">MCQ Answer Checker</div>
+    <div class="page-subtitle">Upload the saved scanned exam sheet. Configure the grid, set the correct answers, and let the system grade it automatically.</div>
+
+    <div class="info-box">
+      💡 Use the image saved from the <strong>Scanner</strong> tab, or click <strong>→ Send to MCQ Checker</strong>
+      after scanning. Answer indices are 0-based (A = 0, B = 1, C = 2 …).
+    </div>
+
+    <!-- Upload zone -->
+    <div class="section-title">Upload Scanned Sheet</div>
+    <div class="upload-zone" id="omrUploadZone">
+      <input type="file" id="omrFileInput" accept="image/*" onchange="handleOmrUpload(event)"/>
+      <div id="omrUploadContent">
+        <div class="upload-icon">📝</div>
+        <h3>Drop your scanned MCQ sheet here</h3>
+        <p>Use the image saved from the Scanner tab</p>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Sheet configuration: question count and choice count -->
+    <div class="section-title">Sheet Configuration</div>
+    <div class="config-row">
+      <div class="config-group">
+        <label>Number of Questions</label>
+        <input type="number" id="omrQuestions" min="1" max="50" value="5"
+               onchange="buildOmrAnswerInputs()"/>
+      </div>
+      <div class="config-group">
+        <label>Number of Choices</label>
+        <input type="number" id="omrChoices" min="2" max="10" value="5"
+               onchange="buildOmrAnswerInputs()"/>
+      </div>
+    </div>
+
+    <!-- Correct answer dropdowns (built dynamically by JS) -->
+    <div class="section-title">Correct Answers</div>
+    <div class="answer-grid" id="omrAnswerGrid"
+         style="grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));"></div>
+
+    <div class="btn-row" style="margin-top: 8px;">
+      <button class="btn btn-primary" onclick="runOMR()" id="omrBtn" disabled>
+        📊 Check Answers
+      </button>
+      <button class="btn btn-secondary" onclick="clearOmr()">✕ Clear</button>
+    </div>
+
+    <!-- Score + per-question chips -->
+    <div class="score-display" id="omrScoreDisplay">
+      <div class="score-big" id="omrScoreValue">--</div>
+      <div class="score-label">Final Score</div>
+      <div class="question-results" id="omrQuestionResults"></div>
+    </div>
+
+    <!-- Processing stages (hidden until grading runs) -->
+    <div id="omrStatus" style="display: none;">
+      <div class="divider"></div>
+      <div class="section-title">Processing Stages</div>
+      <div class="stage-grid" id="omrStageGrid"></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     TAB 3 — NUMERICAL ANSWER CHECKER
+════════════════════════════════════════════ -->
+<div id="tab-numerical" class="tab-panel">
+  <div class="page">
+
+    <div class="page-title">Numerical Answer Checker</div>
+    <div class="page-subtitle">Grade handwritten numerical answers — integers, decimals, negatives, any range.</div>
+
+    <div class="info-box">
+      💡 Each question on the sheet must have its answer written clearly on a separate line inside a bordered region.
+      The system uses OCR to read each number and compares it to your answer key.
+      Set a <strong>Tolerance</strong> for floating-point answers (e.g. 0.01 accepts answers within ±0.01 of correct).
+    </div>
+
+    <!-- Upload zone -->
+    <div class="section-title">Upload Scanned Sheet</div>
+    <div class="upload-zone" id="numUploadZone">
+      <input type="file" id="numFileInput" accept="image/*" onchange="handleNumUpload(event)"/>
+      <div id="numUploadContent">
+        <div class="upload-icon">🔢</div>
+        <h3>Drop your scanned numerical answer sheet here</h3>
+        <p>Use the image saved from the Scanner tab</p>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Configuration: question count and tolerance -->
+    <div class="section-title">Sheet Configuration</div>
+    <div class="config-row">
+      <div class="config-group">
+        <label>Number of Questions</label>
+        <input type="number" id="numQuestions" min="1" max="30" value="5"
+               onchange="buildNumAnswerInputs()"/>
+      </div>
+      <div class="config-group">
+        <label>Tolerance (±)</label>
+        <input type="number" id="numTolerance" min="0" step="0.01" value="0"
+               placeholder="0 = exact match"/>
+      </div>
+    </div>
+
+    <!-- Correct answer text inputs (built dynamically by JS) -->
+    <div class="section-title">Correct Answers</div>
+    <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px;">
+      Enter each correct answer. Supports integers (e.g. 56), decimals (e.g. 0.4),
+      and negatives (e.g. -39).
+    </p>
+    <div class="answer-grid" id="numAnswerGrid"
+         style="grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));"></div>
+
+    <div class="btn-row" style="margin-top: 8px;">
+      <button class="btn btn-primary" onclick="runNumerical()" id="numBtn" disabled>
+        🔍 Check Answers
+      </button>
+      <button class="btn btn-secondary" onclick="clearNumerical()">✕ Clear</button>
+    </div>
+
+    <!-- Score + per-question chips -->
+    <div class="score-display" id="numScoreDisplay">
+      <div class="score-big" id="numScoreValue">--</div>
+      <div class="score-label">Final Score</div>
+      <div class="question-results" id="numQuestionResults"></div>
+    </div>
+
+    <!-- OCR row extractions (one card per question) -->
+    <div id="numStatus" style="display: none;">
+      <div class="divider"></div>
+      <div class="section-title">OCR Extractions (one row per question)</div>
+      <div class="row-grid" id="numRowGrid"></div>
+
+      <div class="divider"></div>
+      <div class="section-title">Processing Stages</div>
+      <div class="stage-grid" id="numStageGrid"></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+
+<!-- ════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════ -->
+<script>
+
+  const API = "http://localhost:5000";
+
+
+  /* ── Tab switching ──────────────────────────────────────────────── */
+  function switchTab(tab, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    btn.classList.add('active');
+  }
+
+
+  /* ── Toast helper ───────────────────────────────────────────────── */
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + type;
+    setTimeout(() => t.className = 'toast', 3200);
+  }
+
+
+  /* ── File → base64 ──────────────────────────────────────────────── */
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+
+  /* ── Button loading state helper ────────────────────────────────── */
+  function setButtonLoading(btnId, isLoading, originalLabel) {
+    const btn = document.getElementById(btnId);
+    btn.innerHTML = isLoading ? '<span class="spinner"></span> Processing...' : originalLabel;
+    btn.disabled  = isLoading;
+  }
+
+
+  /* ── Stage grid builder (shared by all three tabs) ──────────────── */
+  function buildStageGrid(gridId, stages, labelMap) {
+    const grid = document.getElementById(gridId);
+    grid.innerHTML = '';
+    labelMap.forEach(([key, label]) => {
+      if (!stages[key]) return;
+      const card = document.createElement('div');
+      card.className = 'stage-card';
+      card.innerHTML = `
+        <div class="label">${label}</div>
+        <img src="${stages[key]}" alt="${label}"/>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+
+  /* ── Drag-and-drop for all three upload zones ───────────────────── */
+  [
+    { zoneId: 'scanUploadZone', mode: 'scan' },
+    { zoneId: 'omrUploadZone',  mode: 'omr'  },
+    { zoneId: 'numUploadZone',  mode: 'num'  }
+  ].forEach(({ zoneId, mode }) => {
+    const zone = document.getElementById(zoneId);
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag');
+      const file = e.dataTransfer.files[0];
+      if (file) loadFileIntoTab(file, mode);
+    });
+  });
+
+
+  /* ── Load a file into a tab's upload zone ───────────────────────── */
+  async function loadFileIntoTab(file, mode) {
+    const b64 = await fileToBase64(file);
+    if (mode === 'scan') {
+      scanImageB64 = b64;
+      document.getElementById('scanUploadContent').innerHTML =
+        `<img class="preview" src="${b64}"/>
+         <p style="margin-top: 8px; color: var(--accent);">✓ ${file.name} loaded</p>`;
+      document.getElementById('scanBtn').disabled = false;
+
+    } else if (mode === 'omr') {
+      omrImageB64 = b64;
+      document.getElementById('omrUploadContent').innerHTML =
+        `<img class="preview" src="${b64}"/>
+         <p style="margin-top: 8px; color: var(--accent);">✓ ${file.name} loaded</p>`;
+      document.getElementById('omrBtn').disabled = false;
+
+    } else if (mode === 'num') {
+      numImageB64 = b64;
+      document.getElementById('numUploadContent').innerHTML =
+        `<img class="preview" src="${b64}"/>
+         <p style="margin-top: 8px; color: var(--accent);">✓ ${file.name} loaded</p>`;
+      document.getElementById('numBtn').disabled = false;
+    }
+  }
+
+
+  /* ════════════════════════════════════════════
+     TAB 1 — SCANNER
+  ════════════════════════════════════════════ */
+
+  let scanImageB64    = null;   // raw uploaded photo
+  let scannedResultB64 = null;  // warped output from server
+
+  function handleScanUpload(event) {
+    loadFileIntoTab(event.target.files[0], 'scan');
+  }
+
+  async function runScan() {
+    if (!scanImageB64) return;
+    setButtonLoading('scanBtn', true, '⚡ Scan');
+
+    const threshold1 = document.getElementById('thresh1').value;
+    const threshold2 = document.getElementById('thresh2').value;
+
+    try {
+      const response = await fetch(`${API}/scan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: scanImageB64, threshold1, threshold2 })
+      });
+      const data = await response.json();
+
+      // Build the 8-stage processing grid
+      buildStageGrid('scanStageGrid', data.stages, [
+        ['original',   'Original'],
+        ['gray',       'Grayscale'],
+        ['threshold',  'Canny Threshold'],
+        ['contours',   'All Contours'],
+        ['bigContour', 'Biggest Contour'],
+        ['warpColor',  'Warp Perspective'],
+        ['warpGray',   'Warp Gray'],
+        ['adaptive',   'Adaptive Threshold']
+      ]);
+
+      // Update the document-detected badge
+      const badge = document.getElementById('contourBadge');
+      if (data.found) {
+        badge.className = 'status-badge found';
+        badge.textContent = 'Document Detected';
+        scannedResultB64 = data.scanned_image;
+
+        // Show action buttons
+        document.getElementById('scanActions').innerHTML = `
+          <button class="btn btn-primary"   onclick="saveScannedImage()">💾 Save Scanned Image</button>
+          <button class="btn btn-secondary" onclick="sendScanTo('omr')">→ Send to MCQ Checker</button>
+          <button class="btn btn-secondary" onclick="sendScanTo('num')">→ Send to Numerical Checker</button>
+        `;
+      } else {
+        badge.className = 'status-badge not-found';
+        badge.textContent = 'No Document Found — Adjust Thresholds';
+        scannedResultB64 = null;
+        document.getElementById('scanActions').innerHTML = '';
+      }
+
+      document.getElementById('scanStatus').style.display = 'block';
+
+    } catch (err) {
+      showToast('Server error. Is app.py running?', 'error');
+    }
+
+    setButtonLoading('scanBtn', false, '⚡ Scan');
+  }
+
+  async function saveScannedImage() {
+    if (!scannedResultB64) return;
+    const filename = `scanned_${Date.now()}.png`;
+
+    // Tell server to save to /uploads folder
+    try {
+      const response = await fetch(`${API}/save_scan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: scannedResultB64, filename })
+      });
+      const data = await response.json();
+      if (data.success) {
+        showToast(`✓ Saved as "${filename}" in /uploads`, 'success');
+      }
+    } catch {
+      showToast('Server save failed — downloading to browser only', 'error');
+    }
+
+    // Also download directly in the browser
+    const a = document.createElement('a');
+    a.href     = scannedResultB64;
+    a.download = filename;
+    a.click();
+  }
+
+  function sendScanTo(tab) {
+    if (!scannedResultB64) return;
+
+    // Inject the scanned image into the target tab's upload zone
+    if (tab === 'omr') {
+      omrImageB64 = scannedResultB64;
+      document.getElementById('omrUploadContent').innerHTML =
+        `<img class="preview" src="${scannedResultB64}"/>
+         <p style="margin-top: 8px; color: var(--accent);">✓ Received from Scanner</p>`;
+      document.getElementById('omrBtn').disabled = false;
+    } else {
+      numImageB64 = scannedResultB64;
+      document.getElementById('numUploadContent').innerHTML =
+        `<img class="preview" src="${scannedResultB64}"/>
+         <p style="margin-top: 8px; color: var(--accent);">✓ Received from Scanner</p>`;
+      document.getElementById('numBtn').disabled = false;
+    }
+
+    // Switch to the target tab
+    const tabIndex  = tab === 'omr' ? 1 : 2;
+    const targetBtn = document.querySelectorAll('.tab-btn')[tabIndex];
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    targetBtn.classList.add('active');
+
+    showToast('Image sent!', 'success');
+  }
+
+  function clearScanner() {
+    scanImageB64    = null;
+    scannedResultB64 = null;
+    document.getElementById('scanUploadContent').innerHTML = `
+      <div class="upload-icon">📄</div>
+      <h3>Drop your exam photo here</h3>
+      <p>or click to browse — JPG, PNG supported</p>`;
+    document.getElementById('scanFileInput').value = '';
+    document.getElementById('scanBtn').disabled = true;
+    document.getElementById('scanStatus').style.display = 'none';
+  }
+
+
+  /* ════════════════════════════════════════════
+     TAB 2 — MCQ / OMR CHECKER
+  ════════════════════════════════════════════ */
+
+  let omrImageB64 = null;
+  const CHOICE_LETTERS = ['A','B','C','D','E','F','G','H','I','J'];
+
+  /* Build answer dropdown inputs for the configured Q × C grid */
+  function buildOmrAnswerInputs() {
+    const questions = parseInt(document.getElementById('omrQuestions').value) || 5;
+    const choices   = parseInt(document.getElementById('omrChoices').value)   || 5;
+    const grid      = document.getElementById('omrAnswerGrid');
+    grid.innerHTML  = '';
+
+    for (let i = 0; i < questions; i++) {
+      const group = document.createElement('div');
+      group.className = 'answer-input-group';
+
+      let optionsHtml = '';
+      for (let j = 0; j < choices; j++) {
+        optionsHtml += `<option value="${j}">${CHOICE_LETTERS[j] || j}</option>`;
+      }
+
+      group.innerHTML = `
+        <label>Q${i + 1}</label>
+        <select id="omrAns${i}">${optionsHtml}</select>
+      `;
+      grid.appendChild(group);
+    }
+  }
+
+  // Build initial 5Q × 5C dropdowns on page load
+  buildOmrAnswerInputs();
+
+  function handleOmrUpload(event) {
+    loadFileIntoTab(event.target.files[0], 'omr');
+  }
+
+  async function runOMR() {
+    if (!omrImageB64) return;
+    setButtonLoading('omrBtn', true, '📊 Check Answers');
+
+    const questions = parseInt(document.getElementById('omrQuestions').value) || 5;
+    const choices   = parseInt(document.getElementById('omrChoices').value)   || 5;
+    const answers   = Array.from({ length: questions }, (_, i) =>
+      parseInt(document.getElementById(`omrAns${i}`).value)
+    );
+
+    try {
+      const response = await fetch(`${API}/check_omr`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: omrImageB64, answers, questions, choices })
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        // Show score
+        document.getElementById('omrScoreDisplay').classList.add('visible');
+        document.getElementById('omrScoreValue').textContent = Math.round(data.score) + '%';
+
+        // Build per-question chips
+        const results = document.getElementById('omrQuestionResults');
+        results.innerHTML = '';
+        data.grading.forEach((g, i) => {
+          const chip = document.createElement('div');
+          chip.className = 'q-chip ' + (g === 1 ? 'correct' : 'wrong');
+          const sel = CHOICE_LETTERS[data.selected_answers[i]] || data.selected_answers[i];
+          const cor = CHOICE_LETTERS[data.correct_answers[i]]  || data.correct_answers[i];
+          chip.textContent = g === 1
+            ? `Q${i + 1} ✓ ${sel}`
+            : `Q${i + 1} ✗ ${sel} → ${cor}`;
+          results.appendChild(chip);
+        });
+
+        // Build 8-stage processing grid
+        buildStageGrid('omrStageGrid', data.stages, [
+          ['original',   'Original'],
+          ['gray',       'Grayscale'],
+          ['edges',      'Canny Edges'],
+          ['contours',   'Contours'],
+          ['bigContour', 'Detected Regions'],
+          ['threshold',  'Threshold'],
+          ['warped',     'Warped Sheet'],
+          ['final',      'Graded Result']
+        ]);
+
+        document.getElementById('omrStatus').style.display = 'block';
+        showToast(`Score: ${Math.round(data.score)}%`, 'success');
+
+      } else {
+        showToast('Could not process sheet: ' + (data.error || 'unknown error'), 'error');
+      }
+
+    } catch (err) {
+      showToast('Server error. Is app.py running?', 'error');
+    }
+
+    setButtonLoading('omrBtn', false, '📊 Check Answers');
+  }
+
+  function clearOmr() {
+    omrImageB64 = null;
+    document.getElementById('omrUploadContent').innerHTML = `
+      <div class="upload-icon">📝</div>
+      <h3>Drop your scanned MCQ sheet here</h3>
+      <p>Use the image saved from the Scanner tab</p>`;
+    document.getElementById('omrFileInput').value = '';
+    document.getElementById('omrBtn').disabled = true;
+    document.getElementById('omrScoreDisplay').classList.remove('visible');
+    document.getElementById('omrStatus').style.display = 'none';
+  }
+
+
+  /* ════════════════════════════════════════════
+     TAB 3 — NUMERICAL ANSWER CHECKER
+  ════════════════════════════════════════════ */
+
+  let numImageB64 = null;
+
+  /* Build one text input per question */
+  function buildNumAnswerInputs() {
+    const questions = parseInt(document.getElementById('numQuestions').value) || 5;
+    const grid      = document.getElementById('numAnswerGrid');
+    grid.innerHTML  = '';
+
+    for (let i = 0; i < questions; i++) {
+      const group = document.createElement('div');
+      group.className = 'answer-input-group';
+      group.innerHTML = `
+        <label>Q${i + 1}</label>
+        <input type="text" id="numAns${i}" placeholder="e.g. -39 or 0.4"/>
+      `;
+      grid.appendChild(group);
+    }
+  }
+
+  // Build initial 5-question inputs on page load
+  buildNumAnswerInputs();
+
+  function handleNumUpload(event) {
+    loadFileIntoTab(event.target.files[0], 'num');
+  }
+
+  async function runNumerical() {
+    if (!numImageB64) return;
+
+    const questions  = parseInt(document.getElementById('numQuestions').value)  || 5;
+    const tolerance  = parseFloat(document.getElementById('numTolerance').value) || 0;
+    const answers    = Array.from({ length: questions }, (_, i) =>
+      document.getElementById(`numAns${i}`).value.trim()
+    );
+
+    // Validate — all answer boxes must be filled
+    if (answers.some(a => a === '')) {
+      showToast('Please fill in all correct answers before checking.', 'error');
+      return;
+    }
+
+    setButtonLoading('numBtn', true, '🔍 Check Answers');
+
+    try {
+      const response = await fetch(`${API}/check_numerical`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: numImageB64, answers, questions, tolerance })
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        // Show score
+        document.getElementById('numScoreDisplay').classList.add('visible');
+        document.getElementById('numScoreValue').textContent = Math.round(data.score) + '%';
+
+        // Build per-question chips showing detected vs correct
+        const results = document.getElementById('numQuestionResults');
+        results.innerHTML = '';
+        data.grading.forEach((g, i) => {
+          const chip = document.createElement('div');
+          chip.className = 'q-chip ' + (g === 1 ? 'correct' : 'wrong');
+          const detected = data.detected[i] || '?';
+          const correct  = data.correct_answers[i];
+          chip.textContent = g === 1
+            ? `Q${i + 1} ✓  ${detected}`
+            : `Q${i + 1} ✗  got: ${detected}  →  ans: ${correct}`;
+          results.appendChild(chip);
+        });
+
+        // Build OCR row extraction cards
+        const rowGrid = document.getElementById('numRowGrid');
+        rowGrid.innerHTML = '';
+        (data.row_images || []).forEach((src, i) => {
+          const ok      = data.grading[i] === 1;
+          const detected = data.detected[i] || '?';
+          const correct  = data.correct_answers[i];
+
+          const card = document.createElement('div');
+          card.className = 'row-card';
+          card.innerHTML = `
+            <div class="row-label" style="color: ${ok ? 'var(--accent)' : 'var(--red)'};">
+              Q${i + 1} — OCR read: "${detected}"
+              ${ok ? '✓' : `✗ (correct: ${correct})`}
+            </div>
+            <img src="${src}" alt="Q${i + 1} row"/>
+          `;
+          rowGrid.appendChild(card);
+        });
+
+        // Build 6-stage processing grid
+        buildStageGrid('numStageGrid', data.stages, [
+          ['original',  'Original'],
+          ['gray',      'Grayscale'],
+          ['edges',     'Canny Edges'],
+          ['contours',  'Contours'],
+          ['warped',    'Warped Sheet'],
+          ['final',     'Graded Result']
+        ]);
+
+        document.getElementById('numStatus').style.display = 'block';
+        showToast(`Score: ${Math.round(data.score)}%`, 'success');
+
+      } else {
+        showToast('Could not process sheet: ' + (data.error || 'unknown error'), 'error');
+      }
+
+    } catch (err) {
+      showToast('Server error. Is app.py running?', 'error');
+    }
+
+    setButtonLoading('numBtn', false, '🔍 Check Answers');
+  }
+
+  function clearNumerical() {
+    numImageB64 = null;
+    document.getElementById('numUploadContent').innerHTML = `
+      <div class="upload-icon">🔢</div>
+      <h3>Drop your scanned numerical answer sheet here</h3>
+      <p>Use the image saved from the Scanner tab</p>`;
+    document.getElementById('numFileInput').value = '';
+    document.getElementById('numBtn').disabled = true;
+    document.getElementById('numScoreDisplay').classList.remove('visible');
+    document.getElementById('numStatus').style.display = 'none';
+  }
+
+</script>
+</body>
+</html>
