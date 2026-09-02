@@ -5,6 +5,9 @@
 
 ---
 
+![Uploading Screenshot 2026-06-06 112134.png…]()
+
+
 ## Overview
 
 **GATEScan** is a browser-based automated grading platform built for educational institutions that lack access to expensive Scantron-style hardware. Point a smartphone camera at an answer sheet, upload the photo, and the system handles the rest: perspective correction, MCQ bubble detection, and handwritten numerical answer recognition.
