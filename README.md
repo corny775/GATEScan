@@ -38,6 +38,9 @@ Raw Photo → Document Scan → OMR Grading → Numerical OCR → Final Score
 
 ---
 
+<img width="1660" height="496" alt="Screenshot 2026-06-06 112145" src="https://github.com/user-attachments/assets/10c2763f-6a21-4503-890a-b3c239d35a83" />
+
+
 ## Tech Stack
 
 | Layer | Technologies |
